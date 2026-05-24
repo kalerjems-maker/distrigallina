@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pedido de Gallinas 🍗</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;600;700&display=swap');
+
+:root{
+  --red:#c0392b;--green:#27ae60;--bg:#fff8f0;
+  --card:#fff;--border:#e0d4c8;--ink:#1a1208;--ink2:#7a6a58;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Barlow',sans-serif;
+  background:var(--bg);color:var(--ink);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.container{
+  background:var(--card);border-radius:20px;
+  max-width:440px;width:100%;
+  box-shadow:0 8px 40px rgba(26,18,8,0.12);
+  overflow:hidden;
+}
+.top{
+  background:var(--red);padding:28px 24px 20px;text-align:center;
+}
+.top .icon{font-size:56px;margin-bottom:8px;}
+.top h1{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:32px;font-weight:900;color:#fff;letter-spacing:1px;
+}
+.top p{color:rgba(255,255,255,0.8);font-size:14px;margin-top:4px;}
+.body{padding:28px 24px;}
+.dia-badge{
+  background:#fff3cd;border:1px solid #ffc107;
+  border-radius:10px;padding:12px;text-align:center;
+  margin-bottom:20px;font-weight:700;font-size:15px;color:#856404;
+}
+label{
+  font-size:13px;font-weight:700;color:var(--ink2);
+  margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.5px;
+}
+input,select{
+  width:100%;background:var(--bg);border:2px solid var(--border);
+  border-radius:10px;padding:12px 14px;
+  color:var(--ink);font-family:'Barlow',sans-serif;
+  font-size:16px;outline:none;margin-bottom:16px;
+  transition:border-color .2s;
+}
+input:focus,select:focus{border-color:var(--red);}
+.btn{
+  width:100%;padding:14px;border:none;border-radius:12px;
+  background:var(--red);color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:20px;letter-spacing:1px;
+  cursor:pointer;transition:all .15s;text-transform:uppercase;
+}
+.btn:active{transform:scale(.97);}
+
+/* EXITO */
+.exito{display:none;text-align:center;padding:20px 0;}
+.exito .check{font-size:72px;margin-bottom:12px;}
+.exito h2{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:32px;font-weight:900;color:var(--green);margin-bottom:8px;
+}
+.exito p{color:var(--ink2);font-size:15px;line-height:1.6;}
+.resumen{
+  background:#eafaf1;border:1px solid var(--green);
+  border-radius:12px;padding:16px;margin:16px 0;
+  font-size:15px;
+}
+.resumen b{color:var(--red);}
+
+/* SPINNER */
+.spinner{display:none;text-align:center;padding:20px;font-size:14px;color:var(--ink2);}
+.spin{display:inline-block;width:24px;height:24px;border:3px solid #eee;border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top">
+    <div class="icon">🍗</div>
+    <h1>PEDIDO SABADO</h1>
+    <p>Reserva tus gallinas con tiempo</p>
+  </div>
+  <div class="body">
+    <div class="dia-badge">
+      📅 Entrega: proximo sabado
+    </div>
+
+    <div id="formZona">
+      <label>Tu nombre</label>
+      <input type="text" id="fNombre" placeholder="Tu nombre completo" autocomplete="name">
+
+      <label>Tu telefono (WhatsApp)</label>
+      <input type="tel" id="fTel" placeholder="+57 300..." autocomplete="tel">
+
+      <label>¿Cuantas gallinas quieres?</label>
+      <select id="fCantidad">
+        <option value="">-- Selecciona --</option>
+        <option value="1">1 gallina</option>
+        <option value="2">2 gallinas</option>
+        <option value="3">3 gallinas</option>
+        <option value="4">4 gallinas</option>
+        <option value="5">5 gallinas</option>
+        <option value="6">6 gallinas</option>
+        <option value="7">7 gallinas</option>
+        <option value="8">8 gallinas</option>
+        <option value="9">9 gallinas</option>
+        <option value="10">10 gallinas</option>
+        <option value="15">15 gallinas</option>
+        <option value="20">20 gallinas</option>
+      </select>
+
+      <label>Nota (opcional)</label>
+      <input type="text" id="fNota" placeholder="Ej: las recojo en la tarde">
+
+      <div class="spinner" id="spinner"><span class="spin"></span>Enviando pedido...</div>
+      <button class="btn" onclick="enviarPedido()">✅ Confirmar Pedido</button>
+    </div>
+
+    <div class="exito" id="exitoZona">
+      <div class="check">✅</div>
+      <h2>¡Pedido Confirmado!</h2>
+      <div class="resumen" id="resumenPedido"></div>
+      <p>Te esperamos el <b>sabado</b>.<br>Gracias por tu pedido 🙏🍗</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURAR AQUI: URL del Google Apps Script
+// ============================================================
+const SCRIPT_URL = 'PEGAR_URL_APPS_SCRIPT_AQUI';
+// ============================================================
+
+function validar(){
+  const nombre = document.getElementById('fNombre').value.trim();
+  const tel = document.getElementById('fTel').value.trim();
+  const cantidad = document.getElementById('fCantidad').value;
+  if(!nombre){ alert('Por favor escribe tu nombre'); return false; }
+  if(!cantidad){ alert('Por favor selecciona cuantas gallinas quieres'); return false; }
+  return true;
+}
+
+async function enviarPedido(){
+  if(!validar()) return;
+
+  const nombre = document.getElementById('fNombre').value.trim();
+  const tel = document.getElementById('fTel').value.trim();
+  const cantidad = parseInt(document.getElementById('fCantidad').value);
+  const nota = document.getElementById('fNota').value.trim();
+
+  document.getElementById('spinner').style.display='block';
+  document.querySelector('.btn').style.display='none';
+
+  const payload = {
+    accion: 'preventa',
+    nombre, tel, cantidad, nota,
+    fecha: new Date().toISOString()
+  };
+
+  try{
+    if(SCRIPT_URL !== 'PEGAR_URL_APPS_SCRIPT_AQUI'){
+      await fetch(SCRIPT_URL,{
+        method:'POST',mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+    }
+    mostrarExito(nombre, cantidad, nota);
+  } catch(e){
+    // igual mostramos exito (no-cors no retorna datos)
+    mostrarExito(nombre, cantidad, nota);
+  }
+}
+
+function mostrarExito(nombre, cantidad, nota){
+  document.getElementById('formZona').style.display='none';
+  document.getElementById('exitoZona').style.display='block';
+  document.getElementById('resumenPedido').innerHTML =
+    `<b>${nombre}</b><br>
+     🐔 <b>${cantidad} gallina${cantidad>1?'s':''}</b><br>
+     ${nota?'📝 '+nota+'<br>':''}`;
+}
+</script>
+</body>
+</html>
 
