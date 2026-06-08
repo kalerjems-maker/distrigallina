@@ -590,7 +590,23 @@ function initApp(){
   if(typeof cargarPreventa==='function'){cargarPreventa();setInterval(cargarPreventa,5*60*1000);}
   setInterval(function(){if(CFG.scriptUrl){fetch(CFG.scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({accion:'sync',data:DB})}).catch(function(){});}},10*60*1000);
 }
-window.addEventListener('load',()=>{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});setTimeout(()=>{const s=document.getElementById('splash');s.classList.add('hide');setTimeout(()=>{s.style.display='none';initApp();},400);},1800);});
+window.addEventListener('load',()=>{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});setTimeout(()=>{
+  const s=document.getElementById('splash');
+  s.classList.add('hide');
+  setTimeout(()=>{
+    s.style.display='none';
+    try{initApp();}catch(e){console.error(e);}
+  },400);
+},1800);
+// Failsafe: si en 5 segundos no cargó, forzar cierre del splash
+setTimeout(()=>{
+  const s=document.getElementById('splash');
+  if(s&&s.style.display!=='none'){
+    s.style.display='none';
+    try{initApp();}catch(e){}
+  }
+},5000);
+});
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dPWA=e;document.getElementById('btnInst').style.display='block';});
 function instPWA(){if(dPWA){dPWA.prompt();dPWA=null;document.getElementById('btnInst').style.display='none';}}
 function setFechas(){['vFch','gFch','abFch','apFch','movF'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=HOY;});}
@@ -944,6 +960,4 @@ function abrirNC(){abrir('ovNC');}
 function guardarNC(){const n=document.getElementById('ncN').value.trim().toUpperCase();const t=document.getElementById('ncT').value.trim();const b=document.getElementById('ncB').value.trim().toUpperCase();if(!n){toast('INGRESA EL NOMBRE');return;}const cli=guardarCli(n,t,b,'normal');if(cli){cerrar('ovNC');selCliV(cli.id,cli.nombre);toast('CLIENTE CREADO');}}
 function procVCF(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const texto=ev.target.result;const contactos=[];texto.split(/BEGIN:VCARD/i).filter(b=>b.trim()).forEach(bloque=>{const nombre=lN(exVCF(bloque,['FN','N']));const tel=lTel(exTelVCF(bloque));if(nombre)contactos.push({nombre,telefono:tel});});if(!contactos.length){toast('SIN CONTACTOS');return;}mostrarVCF(contactos);toast(contactos.length+' CONTACTOS ENCONTRADOS');};reader.readAsText(file,'UTF-8');e.target.value='';}
 function exVCF(b,campos){for(var i=0;i<campos.length;i++){var c=campos[i];var m=b.match(new RegExp(c+'[^:]*:(.+)','i'));if(m){var v=m[1].replace(/\r/g,'').trim();if(c==='N'){var pts=v.split(';').filter(function(x){return x.trim();});v=pts.reverse().join(' ').trim();}if(v)return v;}}return '';}
-function exTelVCF(b){const m=b.match(/TEL[^:]*:([+\d\s\-().]+)/i);return m?m[1].replace(/\s/g,'').trim():'';}
-function lTel(str){if(!str)return '';let t=str.replace(/\D/g,'');if(t.startsWith('57')&&t.length>10)t=t.slice(2);return t.slice(0,10);}
-function mostrarVCF(contactos){var el=document.getElementById('lVC
+function exTelVCF(b){co
